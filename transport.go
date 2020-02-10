@@ -15,6 +15,7 @@ func (r roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 func newTransport(opts transportOptions) http.RoundTripper {
 	return roundTripper(func(req *http.Request) (*http.Response, error) {
 		setAuthorizationHeader(req.Header, opts.token)
+		setVersionHeader(req.Header)
 
 		return http.DefaultTransport.RoundTrip(req)
 	})

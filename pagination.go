@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 )
@@ -62,15 +61,13 @@ RUNELOOP:
 }
 
 // next returns a URL to be used when paginating
-func next(resp *http.Response) (*url.URL, error) {
+func next(resp *http.Response) (string, error) {
 	if resp == nil {
-		return nil, errors.New("Response was nil, this is unexpected. Please open an issue at https://github.com/romainmenke/bugsnagda")
+		return "", errors.New("Response was nil, this is unexpected. Please open an issue at https://github.com/romainmenke/bugsnagda")
 	}
 
 	linkHeader := resp.Header.Get("Link")
-	nextStr := parseLinkHeader(linkHeader)
-
-	return url.Parse(nextStr)
+	return parseLinkHeader(linkHeader), nil
 }
 
 // perPage sets the pagination limit on a request
