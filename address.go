@@ -1,4 +1,4 @@
 package bugsnagda
 
-// Address is the Bugsnag Data Access API Address.
-const Address = "https://api.bugsnag.com"
+// address is the Bugsnag Data Access API Address.
+const address = "https://api.bugsnag.com"

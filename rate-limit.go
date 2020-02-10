@@ -4,11 +4,11 @@ import (
 	"time"
 )
 
-// RateLimitHeaderKey is the number of requests allowed per time window.
-const RateLimitHeaderKey = "X-RateLimit-Limit"
+// rateLimitHeaderKey is the number of requests allowed per time window.
+const rateLimitHeaderKey = "X-RateLimit-Limit"
 
-// RateLimitRemainingHeaderKey is the number of requests remaining in the current time window.
-const RateLimitRemainingHeaderKey = "X-RateLimit-Remaining"
+// rateLimitRemainingHeaderKey is the number of requests remaining in the current time window.
+const rateLimitRemainingHeaderKey = "X-RateLimit-Remaining"
 
-// RateLimitTimeFrame is the duration for rate limits.
-const RateLimitTimeFrame = time.Minute
+// rateLimitTimeFrame is the duration for rate limits.
+const rateLimitTimeFrame = time.Minute

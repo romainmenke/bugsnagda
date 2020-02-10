@@ -5,10 +5,10 @@ import (
 	"net/http"
 )
 
-// AuthorizationHeaderKey is used to authorize the client to access the Bugsnag Data Access API.
-const AuthorizationHeaderKey = "Authorization"
+// authorizationHeaderKey is used to authorize the client to access the Bugsnag Data Access API.
+const authorizationHeaderKey = "Authorization"
 
-// SetAuthorizationHeader sets the Authorization token on a http header.
-func SetAuthorizationHeader(h http.Header, token string) {
-	h.Set(AuthorizationHeaderKey, fmt.Sprintf("token %s", token))
+// setAuthorizationHeader sets the Authorization token on a http header.
+func setAuthorizationHeader(h http.Header, token string) {
+	h.Set(authorizationHeaderKey, fmt.Sprintf("token %s", token))
 }

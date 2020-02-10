@@ -2,5 +2,5 @@ package bugsnagda
 
 import "time"
 
-// TimeFormat is the Time Format used by the Bugsnag Data Access API.
-const TimeFormat = time.RFC3339
+// timeFormat is the time format used by the Bugsnag Data Access API.
+const timeFormat = time.RFC3339

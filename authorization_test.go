@@ -8,9 +8,9 @@ import (
 func TestSetAuthorizationHeader(t *testing.T) {
 	h := http.Header{}
 
-	SetAuthorizationHeader(h, "foo")
+	setAuthorizationHeader(h, "foo")
 
-	if h.Get(AuthorizationHeaderKey) != "token foo" {
-		t.Errorf("expected : \"token foo\", got \"%s\"", h.Get(AuthorizationHeaderKey))
+	if h.Get(authorizationHeaderKey) != "token foo" {
+		t.Errorf("expected : \"token foo\", got \"%s\"", h.Get(authorizationHeaderKey))
 	}
 }
