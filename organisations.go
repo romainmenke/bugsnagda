@@ -16,17 +16,18 @@ type Creator struct {
 }
 
 type Organisation struct {
-	ID               string    `json:"id"`
-	Slug             string    `json:"slug"`
-	Name             string    `json:"name"`
-	BillingEmails    []string  `json:"billing_emails"`
-	AutoUpgrade      bool      `json:"auto_upgrade"`
-	Creator          Creator   `json:"creator"`
-	CollaboratorsURL string    `json:"collaborators_url"`
-	ProjectsURL      string    `json:"projects_url"`
-	UpgradeURL       string    `json:"upgrade_url"`
-	CreatedAt        time.Time `json:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at"`
+	ID               string                                                                                    `json:"id"`
+	Slug             string                                                                                    `json:"slug"`
+	Name             string                                                                                    `json:"name"`
+	BillingEmails    []string                                                                                  `json:"billing_emails"`
+	AutoUpgrade      bool                                                                                      `json:"auto_upgrade"`
+	Creator          Creator                                                                                   `json:"creator"`
+	CollaboratorsURL string                                                                                    `json:"collaborators_url"`
+	ProjectsURL      string                                                                                    `json:"projects_url"`
+	UpgradeURL       string                                                                                    `json:"upgrade_url"`
+	CreatedAt        time.Time                                                                                 `json:"created_at"`
+	UpdatedAt        time.Time                                                                                 `json:"updated_at"`
+	Projects         func(context.Context, OrganisationProjectsOptions) (*OrganisationProjectsResponse, error) `json:"-"`
 }
 
 type OrganisationsResponse struct {
@@ -93,12 +94,25 @@ func (c *Client) organisations(ctx context.Context, u string, opts Organisations
 		return nil, err
 	}
 
+	for i := range organisations {
+		organisations[i].Projects = func(projectsCtx context.Context, projectOpts OrganisationProjectsOptions) (*OrganisationProjectsResponse, error) {
+			projectOpts.OrganisationID = organisations[i].ID
+
+			return c.OrganisationProjects(projectsCtx, projectOpts)
+		}
+	}
+
 	out := &OrganisationsResponse{
 		Organisations: organisations,
+		TotalCount:    totalCount(resp),
 		Next: func(nextCtx context.Context) (*OrganisationsResponse, error) {
 			nextURL, err := next(resp)
 			if err != nil {
 				return nil, err
+			}
+
+			if nextURL == "" {
+				return nil, nil
 			}
 
 			return c.organisations(nextCtx, nextURL, opts)

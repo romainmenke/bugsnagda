@@ -82,16 +82,16 @@ func perPage(req *http.Request, perPage int) {
 const totalCountHeaderKey = "X-Total-Count"
 
 // totalCount returns the total count for the requested resource
-func totalCount(resp *http.Response) (int, error) {
+func totalCount(resp *http.Response) int {
 	if resp == nil {
-		return 0, errors.New("Response was nil, this is unexpected. Please open an issue at https://github.com/romainmenke/bugsnagda")
+		return 0
 	}
 
 	totalCountHeader := resp.Header.Get(totalCountHeaderKey)
 	totalCount, err := strconv.ParseInt(totalCountHeader, 10, 64)
 	if err != nil {
-		return 0, err
+		return 0
 	}
 
-	return int(totalCount), nil
+	return int(totalCount)
 }
