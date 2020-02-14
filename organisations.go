@@ -10,24 +10,25 @@ import (
 )
 
 type Creator struct {
-	ID    string `json:"id"`
 	Email string `json:"email"`
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 }
 
 type Organisation struct {
-	ID               string                                                                                    `json:"id"`
-	Slug             string                                                                                    `json:"slug"`
-	Name             string                                                                                    `json:"name"`
-	BillingEmails    []string                                                                                  `json:"billing_emails"`
-	AutoUpgrade      bool                                                                                      `json:"auto_upgrade"`
-	Creator          Creator                                                                                   `json:"creator"`
-	CollaboratorsURL string                                                                                    `json:"collaborators_url"`
-	ProjectsURL      string                                                                                    `json:"projects_url"`
-	UpgradeURL       string                                                                                    `json:"upgrade_url"`
-	CreatedAt        time.Time                                                                                 `json:"created_at"`
-	UpdatedAt        time.Time                                                                                 `json:"updated_at"`
-	Projects         func(context.Context, OrganisationProjectsOptions) (*OrganisationProjectsResponse, error) `json:"-"`
+	AutoUpgrade      bool                                                              `json:"auto_upgrade"`
+	BillingEmails    []string                                                          `json:"billing_emails"`
+	CollaboratorsURL string                                                            `json:"collaborators_url"`
+	CreatedAt        time.Time                                                         `json:"created_at"`
+	Creator          Creator                                                           `json:"creator"`
+	ID               string                                                            `json:"id"`
+	Name             string                                                            `json:"name"`
+	Projects         func(context.Context, ProjectsOptions) (*ProjectsResponse, error) `json:"-"`
+	ProjectsAll      func(context.Context, ProjectsOptions) (*ProjectsResponse, error) `json:"-"`
+	ProjectsURL      string                                                            `json:"projects_url"`
+	Slug             string                                                            `json:"slug"`
+	UpdatedAt        time.Time                                                         `json:"updated_at"`
+	UpgradeURL       string                                                            `json:"upgrade_url"`
 }
 
 type OrganisationsResponse struct {
@@ -60,6 +61,35 @@ func (o OrganisationsOptions) setQuery(u *url.URL) {
 	}
 
 	u.RawQuery = q.Encode()
+}
+
+func (c *Client) OrganisationsAll(ctx context.Context, opts OrganisationsOptions) (*OrganisationsResponse, error) {
+	var (
+		combinedOrganisationsResponse = &OrganisationsResponse{}
+		organisationsResponse         *OrganisationsResponse
+		err                           error
+	)
+
+	for true {
+		if organisationsResponse == nil {
+			organisationsResponse, err = c.Organisations(ctx, opts)
+		} else {
+			organisationsResponse, err = organisationsResponse.Next(ctx)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		if organisationsResponse == nil {
+			break
+		}
+
+		combinedOrganisationsResponse.TotalCount = organisationsResponse.TotalCount
+		combinedOrganisationsResponse.Organisations = append(combinedOrganisationsResponse.Organisations, organisationsResponse.Organisations...)
+	}
+
+	return combinedOrganisationsResponse, nil
 }
 
 func (c *Client) Organisations(ctx context.Context, opts OrganisationsOptions) (*OrganisationsResponse, error) {
@@ -95,10 +125,18 @@ func (c *Client) organisations(ctx context.Context, u string, opts Organisations
 	}
 
 	for i := range organisations {
-		organisations[i].Projects = func(projectsCtx context.Context, projectOpts OrganisationProjectsOptions) (*OrganisationProjectsResponse, error) {
+		// Projects
+		organisations[i].Projects = func(projectsCtx context.Context, projectOpts ProjectsOptions) (*ProjectsResponse, error) {
 			projectOpts.OrganisationID = organisations[i].ID
 
-			return c.OrganisationProjects(projectsCtx, projectOpts)
+			return c.Projects(projectsCtx, projectOpts)
+		}
+
+		// ProjectsAll
+		organisations[i].ProjectsAll = func(projectsCtx context.Context, projectOpts ProjectsOptions) (*ProjectsResponse, error) {
+			projectOpts.OrganisationID = organisations[i].ID
+
+			return c.ProjectsAll(projectsCtx, projectOpts)
 		}
 	}
 
