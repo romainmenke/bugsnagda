@@ -10,20 +10,22 @@ import (
 )
 
 type Event struct {
-	ID           string        `json:"id"`
-	IsFullReport bool          `json:"is_full_report"`
-	URL          string        `json:"url"`
-	ProjectURL   string        `json:"project_url"`
-	ErrorID      string        `json:"error_id"`
-	ReceivedAt   time.Time     `json:"received_at"`
-	Severity     errorSeverity `json:"severity"`
-	Exceptions   []Exception   `json:"exceptions"`
-	Unhandled    bool          `json:"unhandled"`
-	Context      string        `json:"context"`
-	App          App           `json:"app"`
-	Threads      []Thread      `json:"threads"`
-	MetaData     interface{}   `json:"metaData"`
-	Breadcrumbs  []Breadcrumb  `json:"breadcrumbs"`
+	ID            string                                `json:"id"`
+	IsFullReport  bool                                  `json:"is_full_report"`
+	URL           string                                `json:"url"`
+	ProjectURL    string                                `json:"project_url"`
+	ProjectID     string                                `json:"project_id"`
+	ErrorReportID string                                `json:"error_id"`
+	ReceivedAt    time.Time                             `json:"received_at"`
+	Severity      errorReportSeverity                   `json:"severity"`
+	Exceptions    []Exception                           `json:"exceptions"`
+	Unhandled     bool                                  `json:"unhandled"`
+	Context       string                                `json:"context"`
+	App           App                                   `json:"app"`
+	Threads       []Thread                              `json:"threads"`
+	MetaData      json.RawMessage                       `json:"metaData"`
+	Breadcrumbs   []Breadcrumb                          `json:"breadcrumbs"`
+	FullReport    func(context.Context) (*Event, error) `json:"-"`
 }
 
 type EventsResponse struct {
@@ -32,6 +34,7 @@ type EventsResponse struct {
 	TotalCount int
 }
 
+const eventEndpoint = address + "/projects/%s/events/%s"
 const eventsOnProjectEndpoint = address + "/projects/%s/events"
 const eventsOnErrorEndpoint = address + "/projects/%s/errors/%s/events"
 
@@ -151,6 +154,13 @@ func (c *Client) events(ctx context.Context, u string, opts EventsOptions) (*Eve
 		return nil, err
 	}
 
+	for i := range events {
+		events[i].ProjectID = opts.ProjectID
+		events[i].FullReport = func(eventCtx context.Context) (*Event, error) {
+			return c.event(eventCtx, opts.ProjectID, events[i].ID)
+		}
+	}
+
 	out := &EventsResponse{
 		Events:     events,
 		TotalCount: totalCount(resp),
@@ -169,4 +179,38 @@ func (c *Client) events(ctx context.Context, u string, opts EventsOptions) (*Eve
 	}
 
 	return out, nil
+}
+
+func (c *Client) event(ctx context.Context, projectID string, eventID string) (*Event, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(eventEndpoint, projectID, eventID), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req = req.Clone(ctx)
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode/100 != 2 {
+		return nil, errorFromResponse(resp)
+	}
+
+	defer resp.Body.Close()
+
+	decoder := json.NewDecoder(resp.Body)
+
+	event := &Event{}
+	err = decoder.Decode(event)
+	if err != nil {
+		return nil, err
+	}
+
+	event.FullReport = func(context.Context) (*Event, error) {
+		return event, nil
+	}
+
+	return event, nil
 }

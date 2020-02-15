@@ -10,32 +10,34 @@ import (
 )
 
 type Project struct {
-	APIKey                 string                                                        `json:"api_key"`
-	CollaboratorsCount     int                                                           `json:"collaborators_count"`
-	CreatedAt              time.Time                                                     `json:"created_at"`
-	CustomEventFieldsUsed  int                                                           `json:"custom_event_fields_used"`
-	DiscardedAppVersions   []string                                                      `json:"discarded_app_versions"`
-	DiscardedErrors        []string                                                      `json:"discarded_errors"`
-	Errors                 func(context.Context, ErrorsOptions) (*ErrorsResponse, error) `json:"-"`
-	ErrorsAll              func(context.Context, ErrorsOptions) (*ErrorsResponse, error) `json:"-"`
-	ErrorsURL              string                                                        `json:"errors_url"`
-	EventsURL              string                                                        `json:"events_url"`
-	GlobalGrouping         []string                                                      `json:"global_grouping"`
-	HTMLURL                string                                                        `json:"html_url"`
-	ID                     string                                                        `json:"id"`
-	IgnoredBrowserVersions map[string]interface{}                                        `json:"ignored_browser_versions"`
-	IgnoreOldBrowsers      bool                                                          `json:"ignore_old_browsers"`
-	IsFullView             bool                                                          `json:"is_full_view"`
-	Language               string                                                        `json:"language"`
-	LocationGrouping       []string                                                      `json:"location_grouping"`
-	Name                   string                                                        `json:"name"`
-	OpenErrorCount         int                                                           `json:"open_error_count"`
-	ReleaseStages          []string                                                      `json:"release_stages"`
-	ResolveOnDeploy        bool                                                          `json:"resolve_on_deploy"`
-	Slug                   string                                                        `json:"slug"`
-	UpdatedAt              time.Time                                                     `json:"updated_at"`
-	URL                    string                                                        `json:"url"`
-	URLWhitelist           []string                                                      `json:"url_whitelist"`
+	APIKey                 string                                                                    `json:"api_key"`
+	CollaboratorsCount     int                                                                       `json:"collaborators_count"`
+	CreatedAt              time.Time                                                                 `json:"created_at"`
+	CustomEventFieldsUsed  int                                                                       `json:"custom_event_fields_used"`
+	DiscardedAppVersions   []string                                                                  `json:"discarded_app_versions"`
+	DiscardedErrors        []string                                                                  `json:"discarded_errors"`
+	ErrorReports           func(context.Context, ErrorReportsOptions) (*ErrorReportsResponse, error) `json:"-"`
+	ErrorReportsAll        func(context.Context, ErrorReportsOptions) (*ErrorReportsResponse, error) `json:"-"`
+	ErrorsURL              string                                                                    `json:"errors_url"`
+	Events                 func(context.Context, EventsOptions) (*EventsResponse, error)             `json:"-"`
+	EventsAll              func(context.Context, EventsOptions) (*EventsResponse, error)             `json:"-"`
+	EventsURL              string                                                                    `json:"events_url"`
+	GlobalGrouping         []string                                                                  `json:"global_grouping"`
+	HTMLURL                string                                                                    `json:"html_url"`
+	ID                     string                                                                    `json:"id"`
+	IgnoredBrowserVersions map[string]interface{}                                                    `json:"ignored_browser_versions"`
+	IgnoreOldBrowsers      bool                                                                      `json:"ignore_old_browsers"`
+	IsFullView             bool                                                                      `json:"is_full_view"`
+	Language               string                                                                    `json:"language"`
+	LocationGrouping       []string                                                                  `json:"location_grouping"`
+	Name                   string                                                                    `json:"name"`
+	OpenErrorCount         int                                                                       `json:"open_error_count"`
+	ReleaseStages          []string                                                                  `json:"release_stages"`
+	ResolveOnDeploy        bool                                                                      `json:"resolve_on_deploy"`
+	Slug                   string                                                                    `json:"slug"`
+	UpdatedAt              time.Time                                                                 `json:"updated_at"`
+	URL                    string                                                                    `json:"url"`
+	URLWhitelist           []string                                                                  `json:"url_whitelist"`
 }
 
 type ProjectsResponse struct {
@@ -145,18 +147,32 @@ func (c *Client) projects(ctx context.Context, u string, opts ProjectsOptions) (
 	}
 
 	for i := range projects {
-		// Errors
-		projects[i].Errors = func(projectsCtx context.Context, errorOpts ErrorsOptions) (*ErrorsResponse, error) {
+		// ErrorReports
+		projects[i].ErrorReports = func(errorsCtx context.Context, errorOpts ErrorReportsOptions) (*ErrorReportsResponse, error) {
 			errorOpts.ProjectID = projects[i].ID
 
-			return c.Errors(projectsCtx, errorOpts)
+			return c.ErrorReports(errorsCtx, errorOpts)
 		}
 
-		// ErrorsAll
-		projects[i].ErrorsAll = func(projectsCtx context.Context, errorOpts ErrorsOptions) (*ErrorsResponse, error) {
+		// ErrorReportsAll
+		projects[i].ErrorReportsAll = func(errorsCtx context.Context, errorOpts ErrorReportsOptions) (*ErrorReportsResponse, error) {
 			errorOpts.ProjectID = projects[i].ID
 
-			return c.ErrorsAll(projectsCtx, errorOpts)
+			return c.ErrorReportsAll(errorsCtx, errorOpts)
+		}
+
+		// Events
+		projects[i].Events = func(eventsCtx context.Context, eventOpts EventsOptions) (*EventsResponse, error) {
+			eventOpts.ProjectID = projects[i].ID
+
+			return c.Events(eventsCtx, eventOpts)
+		}
+
+		// EventsAll
+		projects[i].EventsAll = func(eventsCtx context.Context, eventOpts EventsOptions) (*EventsResponse, error) {
+			eventOpts.ProjectID = projects[i].ID
+
+			return c.EventsAll(eventsCtx, eventOpts)
 		}
 	}
 
