@@ -44,7 +44,7 @@ type ProjectsResponse struct {
 	TotalCount int
 }
 
-const projectsEndpoint = "https://api.bugsnag.com/organizations/%s/projects"
+const projectsEndpoint = address + "/organizations/%s/projects"
 
 type ProjectsOptions struct {
 	// Direction to sort the results by
@@ -67,6 +67,10 @@ type ProjectsOptions struct {
 func (o ProjectsOptions) setQuery(u *url.URL) {
 	if o.PerPage == 0 {
 		o.PerPage = 30
+	}
+
+	if o.PerPage > 100 {
+		o.PerPage = 100
 	}
 
 	q := u.Query()

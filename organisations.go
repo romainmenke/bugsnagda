@@ -37,7 +37,7 @@ type OrganisationsResponse struct {
 	Next          func(context.Context) (*OrganisationsResponse, error)
 }
 
-const organisationsEndpoint = "https://api.bugsnag.com/user/organizations"
+const organisationsEndpoint = address + "/user/organizations"
 
 type OrganisationsOptions struct {
 	// Admin set to true if only Organizations the Current User is an admin of should be returned
@@ -50,6 +50,10 @@ type OrganisationsOptions struct {
 func (o OrganisationsOptions) setQuery(u *url.URL) {
 	if o.PerPage == 0 {
 		o.PerPage = 30
+	}
+
+	if o.PerPage > 100 {
+		o.PerPage = 100
 	}
 
 	q := u.Query()

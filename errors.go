@@ -78,7 +78,7 @@ type ErrorsResponse struct {
 	TotalCount int
 }
 
-const errorsEndpoint = "https://api.bugsnag.com/projects/%s/errors"
+const errorsEndpoint = address + "/projects/%s/errors"
 
 type ErrorsOptions struct {
 	// Direction to sort the results by
@@ -101,6 +101,10 @@ type ErrorsOptions struct {
 func (o ErrorsOptions) setQuery(u *url.URL) {
 	if o.PerPage == 0 {
 		o.PerPage = 30
+	}
+
+	if o.PerPage > 100 {
+		o.PerPage = 100
 	}
 
 	q := u.Query()
