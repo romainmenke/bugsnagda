@@ -1,6 +1,6 @@
 package errport
 
-type ReleaseStage struct {
+type ReportReleaseStage struct {
 	ReportID string
 	Value    string
 }

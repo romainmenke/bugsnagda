@@ -93,7 +93,7 @@ func (x *Project) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, y := range t.ReleaseStages {
-		x.ReleaseStages = append(x.ReleaseStages, &ReleaseStage{
+		x.ReleaseStages = append(x.ReleaseStages, &ProjectReleaseStage{
 			ProjectID: t.ID,
 			Value:     y,
 		})

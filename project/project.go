@@ -32,7 +32,7 @@ type Project struct {
 	LocationGrouping       []*LocationGroup                                                  `json:"location_grouping"`
 	Name                   string                                                            `json:"name"`
 	OpenErrorCount         int                                                               `json:"open_error_count"`
-	ReleaseStages          []*ReleaseStage                                                   `json:"release_stages"`
+	ReleaseStages          []*ProjectReleaseStage                                            `json:"release_stages"`
 	ResolveOnDeploy        bool                                                              `json:"resolve_on_deploy"`
 	Slug                   string                                                            `json:"slug"`
 	UpdatedAt              time.Time                                                         `json:"updated_at"`

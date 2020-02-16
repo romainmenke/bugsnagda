@@ -27,25 +27,27 @@ type Reports struct {
 }
 
 func (o Reports) SetQuery(u *url.URL) {
-	if o.PerPage == 0 {
-		o.PerPage = 30
-	}
-
 	if o.PerPage > 100 {
 		o.PerPage = 100
 	}
 
 	q := u.Query()
 
-	q.Set("direction", fmt.Sprint(o.Direction))
-	q.Set("per_page", fmt.Sprint(o.PerPage))
-	q.Set("sort", fmt.Sprint(o.Sort))
-
-	if o.Base.IsZero() {
-		o.Base = time.Now()
+	if o.Direction != "" {
+		q.Set("direction", fmt.Sprint(o.Direction))
 	}
 
-	q.Set("base", o.Base.Format(apitime.Format))
+	if o.PerPage > 0 {
+		q.Set("per_page", fmt.Sprint(o.PerPage))
+	}
+
+	if o.Sort != "" {
+		q.Set("sort", fmt.Sprint(o.Sort))
+	}
+
+	if !o.Base.IsZero() {
+		q.Set("base", o.Base.Format(apitime.Format))
+	}
 
 	u.RawQuery = q.Encode()
 }

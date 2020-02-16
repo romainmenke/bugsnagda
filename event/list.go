@@ -46,14 +46,18 @@ func All(ctx context.Context, client *http.Client, opts options.Events) (*Respon
 
 		combinedResponse.TotalCount = eventsResponse.TotalCount
 		combinedResponse.Events = append(combinedResponse.Events, eventsResponse.Events...)
+
+		if eventsResponse.TotalCount == len(combinedResponse.Events) {
+			break
+		}
 	}
 
 	return combinedResponse, nil
 }
 
 func Paginated(ctx context.Context, client *http.Client, opts options.Events) (*Response, error) {
-	if opts.ErrorID != "" {
-		return paginated(ctx, client, fmt.Sprintf(eventsOnErrorEndpoint, opts.ProjectID, opts.ErrorID), opts)
+	if opts.ReportID != "" {
+		return paginated(ctx, client, fmt.Sprintf(eventsOnErrorEndpoint, opts.ProjectID, opts.ReportID), opts)
 	}
 
 	return paginated(ctx, client, fmt.Sprintf(eventsOnProjectEndpoint, opts.ProjectID), opts)
@@ -66,6 +70,7 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 	}
 
 	req = req.Clone(ctx)
+
 	opts.SetQuery(req.URL)
 
 	resp, err := client.Do(req)
@@ -88,9 +93,11 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 	}
 
 	for i := range events {
+		eventID := events[i].ID
 		events[i].ProjectID = opts.ProjectID
+
 		events[i].FullReport = func(eventCtx context.Context) (*Event, error) {
-			return event(eventCtx, client, opts.ProjectID, events[i].ID)
+			return single(eventCtx, client, opts.ProjectID, eventID)
 		}
 	}
 
@@ -107,14 +114,14 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 				return nil, nil
 			}
 
-			return paginated(nextCtx, client, nextURL, opts)
+			return paginated(nextCtx, client, nextURL, options.Events{ProjectID: opts.ProjectID, ReportID: opts.ReportID})
 		},
 	}
 
 	return out, nil
 }
 
-func event(ctx context.Context, client *http.Client, projectID string, eventID string) (*Event, error) {
+func single(ctx context.Context, client *http.Client, projectID string, eventID string) (*Event, error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(eventEndpoint, projectID, eventID), nil)
 	if err != nil {
 		return nil, err
