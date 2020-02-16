@@ -1,8 +1,7 @@
-package bugsnagda
+package pagination
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -60,8 +59,8 @@ RUNELOOP:
 	return url
 }
 
-// next returns a URL to be used when paginating
-func next(resp *http.Response) (string, error) {
+// Next returns a URL to be used when paginating
+func Next(resp *http.Response) (string, error) {
 	if resp == nil {
 		return "", errors.New("Response was nil, this is unexpected. Please open an issue at https://github.com/romainmenke/bugsnagda")
 	}
@@ -70,19 +69,11 @@ func next(resp *http.Response) (string, error) {
 	return parseLinkHeader(linkHeader), nil
 }
 
-// perPage sets the pagination limit on a request
-func perPage(req *http.Request, perPage int) {
-	q := req.URL.Query()
-	q.Set("per_page", fmt.Sprint(perPage))
-
-	req.URL.RawQuery = q.Encode()
-}
-
 // totalCountHeaderKey is the total count for the requested resource
 const totalCountHeaderKey = "X-Total-Count"
 
-// totalCount returns the total count for the requested resource
-func totalCount(resp *http.Response) int {
+// TotalCount returns the total count for the requested resource
+func TotalCount(resp *http.Response) int {
 	if resp == nil {
 		return 0
 	}

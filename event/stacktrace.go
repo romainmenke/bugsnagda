@@ -1,6 +1,9 @@
-package bugsnagda
+package event
 
 type Stacktrace struct {
+	ID                string
+	ThreadID          string
+	ExceptionID       string
 	LineNumber        int            `json:"lineNumber"`
 	ColumnNumber      int            `json:"columnNumber"`
 	File              string         `json:"file"`
