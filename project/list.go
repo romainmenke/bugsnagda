@@ -62,6 +62,7 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 	}
 
 	req = req.Clone(ctx)
+
 	opts.SetQuery(req.URL)
 
 	resp, err := client.Do(req)
@@ -84,30 +85,33 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 	}
 
 	for i := range projects {
+		// ID
+		projectID := projects[i].ID
+
 		// ErrorReports
 		projects[i].ErrorReports = func(errorsCtx context.Context, errorOpts options.Reports) (*errport.Response, error) {
-			errorOpts.ProjectID = projects[i].ID
+			errorOpts.ProjectID = projectID
 
 			return errport.Paginated(errorsCtx, client, errorOpts)
 		}
 
 		// ErrorReportsAll
 		projects[i].ErrorReportsAll = func(errorsCtx context.Context, errorOpts options.Reports) (*errport.Response, error) {
-			errorOpts.ProjectID = projects[i].ID
+			errorOpts.ProjectID = projectID
 
 			return errport.All(errorsCtx, client, errorOpts)
 		}
 
 		// Events
 		projects[i].Events = func(eventsCtx context.Context, eventOpts options.Events) (*event.Response, error) {
-			eventOpts.ProjectID = projects[i].ID
+			eventOpts.ProjectID = projectID
 
 			return event.Paginated(eventsCtx, client, eventOpts)
 		}
 
 		// EventsAll
 		projects[i].EventsAll = func(eventsCtx context.Context, eventOpts options.Events) (*event.Response, error) {
-			eventOpts.ProjectID = projects[i].ID
+			eventOpts.ProjectID = projectID
 
 			return event.All(eventsCtx, client, eventOpts)
 		}
@@ -126,7 +130,7 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 				return nil, nil
 			}
 
-			return paginated(nextCtx, client, nextURL, opts)
+			return paginated(nextCtx, client, nextURL, options.Projects{OrganisationID: opts.OrganisationID})
 		},
 	}
 

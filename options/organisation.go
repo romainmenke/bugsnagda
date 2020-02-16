@@ -14,17 +14,15 @@ type Organisations struct {
 }
 
 func (o Organisations) SetQuery(u *url.URL) {
-	if o.PerPage == 0 {
-		o.PerPage = 30
-	}
-
 	if o.PerPage > 100 {
 		o.PerPage = 100
 	}
 
 	q := u.Query()
 
-	q.Set("per_page", fmt.Sprint(o.PerPage))
+	if o.PerPage > 0 {
+		q.Set("per_page", fmt.Sprint(o.PerPage))
+	}
 
 	if o.Admin {
 		q.Set("admin", "true")

@@ -45,6 +45,10 @@ func All(ctx context.Context, client *http.Client, opts options.Reports) (*Respo
 
 		combinedResponse.TotalCount = errorsResponse.TotalCount
 		combinedResponse.Reports = append(combinedResponse.Reports, errorsResponse.Reports...)
+
+		if errorsResponse.TotalCount == len(combinedResponse.Reports) {
+			break
+		}
 	}
 
 	return combinedResponse, nil
@@ -61,6 +65,7 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 	}
 
 	req = req.Clone(ctx)
+
 	opts.SetQuery(req.URL)
 
 	resp, err := client.Do(req)
@@ -83,10 +88,13 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 	}
 
 	for i := range reports {
+		// ID
+		reportID := reports[i].ID
+
 		// Events
 		reports[i].Events = func(eventsCtx context.Context, eventOpts options.Events) (*event.Response, error) {
 			eventOpts.ProjectID = opts.ProjectID
-			eventOpts.ErrorID = reports[i].ID
+			eventOpts.ReportID = reportID
 
 			return event.Paginated(eventsCtx, client, eventOpts)
 		}
@@ -94,7 +102,7 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 		// EventsAll
 		reports[i].EventsAll = func(eventsCtx context.Context, eventOpts options.Events) (*event.Response, error) {
 			eventOpts.ProjectID = opts.ProjectID
-			eventOpts.ErrorID = reports[i].ID
+			eventOpts.ReportID = reportID
 
 			return event.All(eventsCtx, client, eventOpts)
 		}
@@ -113,7 +121,7 @@ func paginated(ctx context.Context, client *http.Client, u string, opts options.
 				return nil, nil
 			}
 
-			return paginated(nextCtx, client, nextURL, opts)
+			return paginated(nextCtx, client, nextURL, options.Reports{ProjectID: opts.ProjectID})
 		},
 	}
 

@@ -1,6 +1,6 @@
 package project
 
-type ReleaseStage struct {
+type ProjectReleaseStage struct {
 	ProjectID string
 	Value     string
 }

@@ -35,7 +35,7 @@ type Report struct {
 	CommentCount               int                                                            `json:"comment_count"`
 	CreatedIssue               *Issue                                                         `json:"created_issue"`
 	MissingDSYMs               []*MissingDSYM                                                 `json:"missing_dsyms"`
-	ReleaseStages              []*ReleaseStage                                                `json:"release_stages"`
+	ReleaseStages              []*ReportReleaseStage                                          `json:"release_stages"`
 	GroupingReason             string                                                         `json:"grouping_reason"`
-	GroupingFields             map[string]interface{}                                         `json:"grouping_fields" gorm:"-"` // TODO
+	GroupingFields             jsonRawMessage                                                 `json:"grouping_fields"`
 }
