@@ -1,4 +1,4 @@
-package bugsnagda
+package options
 
 type sortBy string
 

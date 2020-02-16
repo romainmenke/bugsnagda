@@ -1,11 +1,11 @@
 package bugsnagda
 
 import (
-	"log"
 	"net/http"
 	"sync/atomic"
 	"time"
 
+	"github.com/romainmenke/bugsnagda/apiaddress"
 	"golang.org/x/time/rate"
 )
 
@@ -26,7 +26,7 @@ func newTransport(opts transportOptions) (http.RoundTripper, error) {
 	var burst int
 
 	{
-		pingReq, err := http.NewRequest(http.MethodHead, organisationsEndpoint, nil)
+		pingReq, err := http.NewRequest(http.MethodHead, apiaddress.Address+"/user/organizations", nil)
 		if err != nil {
 			return nil, err
 		}
@@ -66,9 +66,6 @@ func newTransport(opts transportOptions) (http.RoundTripper, error) {
 		if rateLimitRemaining(resp) <= 1 {
 			atomic.AddUint64(&waitForNextWindow, 1)
 		}
-
-		log.Println(req.URL)
-		log.Println(rateLimitRemaining(resp))
 
 		return resp, err
 	}), nil

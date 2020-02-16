@@ -1,4 +1,4 @@
-package bugsnagda
+package apierrors
 
 import (
 	"encoding/json"
@@ -8,30 +8,31 @@ import (
 	"strings"
 )
 
-type APIError struct {
+type Error struct {
 	Code        int      `json:"code"`
 	CodeMeaning string   `json:"-"`
 	Errors      []string `json:"errors"`
 }
 
-func (x APIError) String() string {
+func (x Error) String() string {
 	return fmt.Sprintf("code : %d - %s, messages : %s", x.Code, x.CodeMeaning, strings.Join(x.Errors, ", "))
 }
 
-func (x APIError) Error() string {
+func (x Error) Error() string {
 	return x.String()
 }
 
-func errorFromResponse(resp *http.Response) error {
+func FromResponse(resp *http.Response) error {
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
 
-	apiErr := &APIError{}
+	apiErr := &Error{}
 	err := decoder.Decode(apiErr)
 	if err != nil {
 		log.Println("Failed to decode an API error, this message is not the actual API error. Please open an issue if you suspect a package error at https://github.com/romainmenke/bugsnagda")
-		apiErr := &APIError{
+
+		apiErr := &Error{
 			Code:        resp.StatusCode,
 			CodeMeaning: resp.Status,
 			Errors:      []string{},
